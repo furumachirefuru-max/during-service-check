@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>接客時チェック v8</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Yu Gothic UI","Meiryo",sans-serif;background:#f5f7fb;color:#222;margin:0}
+.wrap{max-width:780px;margin:auto;padding:24px 16px 60px}
+.card{background:#fff;border:1px solid #dfe3ea;border-radius:16px;padding:18px;margin:14px 0}
+h1{margin:0 0 8px}.sub{color:#666;line-height:1.6}h2{font-size:19px;margin:0 0 14px}
+label{display:block;font-weight:700;margin:14px 0 7px}
+.row{display:flex;gap:10px;flex-wrap:wrap}.choice{border:1px solid #dfe3ea;border-radius:10px;padding:10px 12px;background:#fff}
+input[type=number]{width:100%;padding:12px;border:1px solid #cfd5df;border-radius:10px;font-size:18px;box-sizing:border-box}
+.result{border-radius:12px;padding:14px;margin-top:12px;line-height:1.65}
+.blue{background:#eef5ff;border:1px solid #cfe0ff}.green{background:#eefaf2;border:1px solid #cdebd6}.yellow{background:#fff8e8;border:1px solid #f2ddb0}.gray{background:#f6f7f9;border:1px solid #dfe3ea}
+.big{font-size:26px;font-weight:800}.small,.note{font-size:13px;color:#666}.hidden{display:none!important}
+.task{display:flex;gap:10px;align-items:flex-start;border:1px solid #dfe3ea;padding:13px;border-radius:12px;background:#fff;margin:8px 0}
+.task input{margin-top:3px;transform:scale(1.2)}.guarantee-sub{padding:9px 11px;margin:6px 0;font-weight:500}.guarantee-sub input{transform:scale(1.05)}
+.notice-list{margin:8px 0 0 0;padding-left:20px;line-height:1.8}
+button{border:0;border-radius:10px;padding:12px 16px;font-weight:700;cursor:pointer}
+.secondary{background:#e9edf3}.status{font-weight:700;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>接客時チェック</h1>
+<div class="sub">接客中に間違いやすいポイントだけを確認する簡易チェックです。</div>
+<div style="margin:12px 0 4px"><button class="secondary" id="topResetBtn" type="button">クリア</button></div>
+
+<div class="card">
+<h2>① お客様の状況</h2>
+
+<label>利用履歴</label>
+<div class="row">
+<label class="choice"><input type="radio" name="history" value="new"> 新規</label>
+<label class="choice"><input type="radio" name="history" value="return"> 再来</label>
+</div>
+
+<label>ポイントカード</label>
+<div class="row">
+<label class="choice"><input type="radio" name="card" value="yes"> あり</label>
+<label class="choice"><input type="radio" name="card" value="no"> なし</label>
+</div>
+
+<div id="pointsArea" class="hidden">
+<label for="points">所持ポイント</label>
+<input id="points" type="number" min="0" placeholder="例：3500">
+</div>
+</div>
+
+<div class="card">
+<h2>② 査定内容</h2>
+
+<label>買取保証の対象商品あり</label>
+<div class="row">
+<label class="choice"><input type="radio" name="guarantee" value="yes"> はい</label>
+<label class="choice"><input type="radio" name="guarantee" value="no"> いいえ</label>
+</div>
+
+<div id="guaranteeChecks" class="hidden" style="margin-left:28px;font-size:14px">
+<label class="task guarantee-sub"><input type="checkbox"><span>過去に同じ種類（例：モノグラム）で同サービスを利用したことがない</span></label>
+<label class="task guarantee-sub"><input type="checkbox"><span>他買取UP企画、クーポンとの併用不可</span></label>
+<label class="task guarantee-sub"><input type="checkbox"><span>お一人様1点まで、メンバーズ入会必須</span></label>
+<label class="task guarantee-sub"><input type="checkbox"><span>バッグの場合、ショルダー、ハンドルありが対象（ポーチ、セカンドバッグは対象外）</span></label>
+<label class="task guarantee-sub"><input type="checkbox"><span>社外修理品対象外</span></label>
+</div>
+
+<label for="amount">合計査定金額</label>
+<input id="amount" type="number" min="0" placeholder="例：25000">
+
+<div id="cashbackBox" class="result blue hidden">
+<b>ポイントキャッシュバック</b><br>
+利用可能額：<span id="cashback" class="big">0円</span><br>
+<span class="small">1,000ポイント＝1,000円／1,000ポイント単位／査定金額の10％が上限</span>
+</div>
+
+<div id="newMemberBox" class="result green hidden">
+<b>ポイントカード登録をご案内</b>
+<div id="newMemberBenefit" class="hidden" style="margin-top:8px">
+査定金額が20,000円以上です。<br>
+成約金額が20,000円以上の場合は、入会特典を案内します。<br>
+<b>入会特典：</b>WEB入会で500P、DM承認で500Pプレゼント
+</div>
+</div>
+
+<div id="giftBox" class="result yellow hidden">
+<b>ギフトカタログプレゼント（9/1～9/30）対象です。</b><br>
+※メンバーズ登録必須<br>
+成約したら、ギフトカタログを選び、申込書に記入していただきます。
+</div>
+
+<div id="noInfo" class="result gray">
+査定金額を入力すると、必要な案内がここに表示されます。
+</div>
+</div>
+
+<div class="card">
+<h2>③ 最低限のチェック</h2>
+<label class="task"><input type="checkbox"><span><b>利用履歴を確認した</b></span></label>
+<label class="task"><input type="checkbox"><span><b>ポイントカードの有無を確認した</b></span></label>
+<label id="taskPoints" class="task hidden"><input type="checkbox"><span><b>所持ポイントを確認した</b></span></label>
+<label id="taskJoin" class="task hidden"><input type="checkbox"><span><b>ポイントカード登録をご案内した</b><br><span id="taskJoinNote" class="note"></span></span></label>
+<label id="taskCashback" class="task hidden"><input type="checkbox"><span><b>利用可能なキャッシュバック額を確認した</b></span></label>
+<label id="taskGift" class="task hidden"><input type="checkbox"><span><b>ギフトカタログプレゼント対象を確認した</b></span></label>
+
+<div id="status" class="status"></div>
+<div style="margin-top:16px"><button class="secondary" id="resetBtn">最初からやり直す</button></div>
+</div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const KEY="brand_off_during_service_check_v8";
+const val=n=>document.querySelector('input[name="'+n+'"]:checked')?.value||"";
+const yen=n=>new Intl.NumberFormat("ja-JP").format(n)+"円";
+
+function calc(){
+  const history=val("history"), card=val("card");
+  const points=Math.max(0,Number($("#points").value||0));
+  const amount=Math.max(0,Number($("#amount").value||0));
+  const guarantee=val("guarantee")==="yes";
+
+  $("#pointsArea").classList.toggle("hidden",card!=="yes");
+  $("#taskPoints").classList.toggle("hidden",card!=="yes");
+  $("#guaranteeChecks").classList.toggle("hidden",!guarantee);
+
+  if(card==="yes" && amount>0){
+    const byPoints=Math.floor(points/1000)*1000;
+    const byAmount=Math.floor((amount*0.10)/1000)*1000;
+    $("#cashback").textContent=yen(Math.min(byPoints,byAmount));
+    $("#cashbackBox").classList.remove("hidden");
+    $("#taskCashback").classList.remove("hidden");
+  }else{
+    $("#cashbackBox").classList.add("hidden");
+    $("#taskCashback").classList.add("hidden");
+  }
+
+  const showJoin=((history==="new" || card==="no") && amount>=20000);
+  $("#newMemberBox").classList.toggle("hidden",!showJoin);
+  $("#taskJoin").classList.toggle("hidden",!showJoin);
+  $("#newMemberBenefit").classList.toggle("hidden",!showJoin);
+  $("#taskJoinNote").textContent=showJoin?"査定金額20,000円以上：ポイントカード登録と、WEB入会500P＋DM承認500Pの入会特典も案内":"";
+
+  const gift=amount>=300000;
+  $("#giftBox").classList.toggle("hidden",!gift);
+  $("#taskGift").classList.toggle("hidden",!gift);
+
+  $("#noInfo").classList.toggle("hidden",amount>0);
+  save(); updateStatus();
+}
+
+function updateStatus(){
+  const tasks=$$(".card:last-of-type .task").filter(x=>!x.classList.contains("hidden"));
+  const done=tasks.filter(x=>x.querySelector("input").checked).length;
+  $("#status").textContent=done+" / "+tasks.length+" 完了";
+}
+function save(){
+  localStorage.setItem(KEY,JSON.stringify({
+    history:val("history"),card:val("card"),points:$("#points").value,amount:$("#amount").value,
+    guarantee:val("guarantee"),
+    guaranteeChecks:$$('#guaranteeChecks input[type="checkbox"]').map(x=>x.checked),
+    checks:$$(".card:last-of-type .task input").map(x=>x.checked)
+  }));
+}
+function restore(){
+  try{
+    const d=JSON.parse(localStorage.getItem(KEY)||"{}");
+    if(d.history) document.querySelector('input[name="history"][value="'+d.history+'"]').checked=true;
+    if(d.card) document.querySelector('input[name="card"][value="'+d.card+'"]').checked=true;
+    $("#points").value=d.points||""; $("#amount").value=d.amount||"";
+    if(d.guarantee){
+      const gv = d.guarantee === true ? "yes" : d.guarantee;
+      const gr = document.querySelector('input[name="guarantee"][value="'+gv+'"]');
+      if(gr) gr.checked=true;
+    }
+    if(Array.isArray(d.guaranteeChecks)) $$('#guaranteeChecks input[type="checkbox"]').forEach((x,i)=>x.checked=!!d.guaranteeChecks[i]);
+    calc();
+    if(Array.isArray(d.checks)) $$(".card:last-of-type .task input").forEach((x,i)=>x.checked=!!d.checks[i]);
+    updateStatus();
+  }catch(e){}
+}
+function resetAll(){
+  localStorage.removeItem(KEY);
+  $$('input[type="radio"],input[type="checkbox"]').forEach(x=>x.checked=false);
+  $("#points").value=""; $("#amount").value=""; calc();
+}
+$$('input[name="history"],input[name="card"],input[name="guarantee"],#points,#amount').forEach(x=>x.addEventListener("input",calc));
+$$('input[type="checkbox"]').forEach(x=>x.addEventListener("change",()=>{save();updateStatus()}));
+$("#resetBtn").addEventListener("click",resetAll);$("#topResetBtn").addEventListener("click",resetAll);
+restore();
+</script>
+</body>
+</html>
