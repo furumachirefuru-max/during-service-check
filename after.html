@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>接客後チェック 10月版</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--text:#1f2937;--muted:#6b7280;--line:#e5e7eb;--accent:#1f6feb;--warn:#fff6db;--ok:#e9f8ef;--danger:#d93025}
+*{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Yu Gothic",sans-serif;background:var(--bg);color:var(--text)}
+.wrap{max-width:900px;margin:auto;padding:22px}.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:16px}
+h1{margin:0 0 6px;font-size:28px}.sub,.note{color:var(--muted);font-size:14px}.title{font-size:18px;font-weight:700;margin-bottom:12px}
+.row{display:flex;gap:10px;flex-wrap:wrap}.choice{display:flex;align-items:center;gap:7px;padding:10px 13px;border:1px solid var(--line);border-radius:11px;background:#fff}
+.choice input{transform:scale(1.15)} label.block{display:block;margin:16px 0 8px;font-weight:700}
+input[type=number]{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;font-size:16px}
+.btn{border:0;border-radius:11px;padding:12px 17px;font-size:16px;font-weight:700;cursor:pointer}.primary{background:var(--accent);color:white}.secondary{background:#eef2f7}.danger{background:#fff0f0;color:var(--danger);border:1px solid #ffd1d1}.btn:disabled{opacity:.45}
+.hidden{display:none!important}.notice{background:var(--warn);border:1px solid #efd77f;border-radius:10px;padding:12px;margin:9px 0}.good{background:var(--ok);padding:12px;border-radius:10px}
+.task{display:flex;gap:11px;padding:12px 2px;border-bottom:1px solid var(--line);align-items:flex-start}.task:last-child{border-bottom:0}.task input{margin-top:4px;transform:scale(1.2)}.task-title{font-weight:700}.task-note{color:var(--muted);font-size:14px;margin-top:4px;line-height:1.55}
+.progress{height:10px;background:#e9edf3;border-radius:99px;overflow:hidden;margin:9px 0}.progress>div{height:100%;background:var(--accent);width:0}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:700px){.split{grid-template-columns:1fr}.wrap{padding:12px}}
+hr{border:0;border-top:1px solid var(--line);margin:16px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>接客後チェック</h1>
+<div class="sub">処理漏れ防止用。履歴は残さず、途中のチェック状態だけこの端末に一時保存します。</div>
+
+<div id="startCard" class="card">
+  <div class="title">① 接客結果</div>
+  <div class="row">
+    <label class="choice"><input type="radio" name="result" value="success"> 成約</label>
+    <label class="choice"><input type="radio" name="result" value="fail"> 不成約</label>
+  </div>
+
+  <div id="successFields" class="hidden">
+    <hr>
+    <label class="block">② 買取金額</label>
+    <input id="amount" type="number" min="0" placeholder="例：350000">
+
+    <label class="block">③ メンバーズ</label>
+    <div class="row">
+      <label class="choice"><input type="radio" name="member" value="existing"> 既存会員</label>
+      <label class="choice"><input type="radio" name="member" value="paper_new"> 紙で新規入会</label>
+      <label class="choice"><input type="radio" name="member" value="web_new"> WEBで新規入会</label>
+      <label class="choice"><input type="radio" name="member" value="none"> 入会なし</label>
+    </div>
+
+    <label class="block">④ 今回あったもの</label>
+    <div class="row">
+      <label class="choice"><input id="review" type="checkbox"> 口コミ投稿あり</label>
+      <label class="choice"><input id="lineReg" type="checkbox"> LINE登録あり</label>
+    </div>
+
+    <label class="block">⑤ 適用するキャンペーン・買取保証</label>
+    <div class="row">
+      
+      <label class="choice"><input id="apparel" type="checkbox"> ブランドアパレル買取強化 9/1～10/31</label>
+      <label class="choice"><input id="guarantee" type="checkbox"> 買取保証あり</label>
+    </div>
+
+    <div id="guaranteeBox" class="hidden notice">
+      <strong>買取保証の対象を選択（複数可）</strong>
+      <div class="row" style="margin-top:10px">
+        <label class="choice"><input class="gitem" type="checkbox" value="mono"> LVモノグラム</label>
+        <label class="choice"><input class="gitem" type="checkbox" value="damier"> LVダミエ</label>
+        <label class="choice"><input class="gitem" type="checkbox" value="epi"> LVエピ</label>
+        <label class="choice"><input class="gitem" type="checkbox" value="vernis"> LVヴェルニ</label>
+        <label class="choice"><input class="gitem" type="checkbox" value="chanel"> シャネル</label>
+        <label class="choice"><input class="gitem" type="checkbox" value="rolex_l"> ロレックス（レディース）</label>
+        <label class="choice"><input class="gitem" type="checkbox" value="rolex_m"> ロレックス（メンズ）</label>
+        <label class="choice"><input class="gitem" type="checkbox" value="cartier"> カルティエ</label>
+        <label class="choice"><input class="gitem" type="checkbox" value="hermes"> エルメス</label>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:18px"><button id="startBtn" class="btn primary" disabled>チェック開始</button></div>
+</div>
+
+<div id="checkArea" class="hidden">
+  <div class="card">
+    <div class="title">進捗</div>
+    <div class="progress"><div id="bar"></div></div>
+    <div id="progressText" class="note"></div>
+    <div class="row" style="margin-top:12px;justify-content:flex-end">
+      <button id="resetTopBtn" class="btn danger">クリア</button>
+    </div>
+  </div>
+
+  <div id="campaignCard" class="card hidden">
+    <div class="title">適用中キャンペーン・注意事項</div>
+    <div id="campaigns"></div>
+  </div>
+
+  <div class="split">
+    <div class="card"><div class="title">🔴 接客直後にやること</div><div id="immediate"></div></div>
+    <div class="card"><div class="title">🟡 あとで対応</div><div id="later"></div><div id="laterEmpty" class="note hidden">今回の追加タスクはありません。</div></div>
+  </div>
+
+  <div class="card">
+    <div id="doneMsg" class="good hidden">🎉 すべてのタスクが完了しました。</div>
+    <div class="row" style="margin-top:12px">
+      <button id="backBtn" class="btn secondary">条件を修正</button>
+      <button id="doneBtn" class="btn primary" disabled>業務完了・次へ</button>
+      <button id="resetBtn" class="btn danger">最初からやり直す</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const KEY="brand_off_after_service_check_oct2026";
+const $=id=>document.getElementById(id);
+const gmap={
+ mono:"LV2万保証", damier:"ダミエ1.5万保証", epi:"エピ1万保証", vernis:"ヴェルニ5千保証",
+ chanel:"シャネル20万保証", rolex_l:"ロレックス30万保証(レディース)", rolex_m:"ロレックス40万保証(メンズ)",
+ cartier:"マストタンク7万保証", hermes:"クリッパー1.5万保証"
+};
+
+function ctx(){
+ return {
+  result:document.querySelector('input[name=result]:checked')?.value||"",
+  amount:$("amount").value,
+  member:document.querySelector('input[name=member]:checked')?.value||"",
+  review:$("review").checked,lineReg:$("lineReg").checked,
+  apparel:$("apparel").checked,guarantee:$("guarantee").checked,
+  gitems:[...document.querySelectorAll(".gitem:checked")].map(x=>x.value)
+ };
+}
+function updateStart(){
+ const c=ctx();
+ $("successFields").classList.toggle("hidden",c.result!=="success");
+ $("guaranteeBox").classList.toggle("hidden",!c.guarantee);
+ let ok=!!c.result;
+ if(c.result==="success") ok=ok&&c.amount!==""&&!!c.member&&(!c.guarantee||c.gitems.length>0);
+ $("startBtn").disabled=!ok;
+}
+document.querySelectorAll("input").forEach(x=>x.addEventListener("change",updateStart));
+$("amount").addEventListener("input",updateStart);
+
+function omrisNote(c){
+ let a=["登録後、買取伝票の商品名の横に☑。"];
+ if(c.apparel)a.push('商品の備考欄に「アパレル買取強化」を追加。');
+ if(c.guarantee&&c.gitems.length)a.push("商品の備考欄に「"+c.gitems.map(x=>gmap[x]).join("」「")+"」を追加。");
+ return a.join(" ");
+}
+function tasks(c){
+ if(c.result==="fail") return {im:[
+  ["estimate","査定見積書完成",""],
+  ["chat","Chat報告",""],
+  ["omris_customer","OMRIS登録（顧客登録）・買取伝票のお客様名の横に☑",""],
+  ["omris_purchase","OMRIS登録（買取情報登録）・買取伝票の商品名の横に☑","登録後、買取伝票の商品名の横に☑。"],
+  ["file","買取伝票、査定見積書をファイリング",""]
+ ],later:[]};
+
+ let im=[
+  ["estimate","査定見積書完成",c.review?'口コミあり：memo欄に「口コミ ○○様」と記入。※○○様は口コミに表示されているユーザー名':""],
+  ["chat","Chat報告","新規入会、口コミ、LINE登録も報告。"],
+  ["sns_photo","SNS用写真撮影",""],
+  ["cashbook","買取現金出納帳入力",""],
+  ["cashpaper","金庫横の現金出納帳記入",""],
+  ["safe","金庫の残金確認",""]
+ ];
+ if(c.member==="paper_new")im.push(["member_user","ポイントカード登録（ユーザ登録）","紙で新規入会した場合。"]);
+ if((c.member==="paper_new"||c.member==="web_new")&&Number(c.amount)>=20000)
+  im.push(["member_campaign","ポイントカード登録（施策登録）","入会特典：20,000円以上の買取の場合。"]);
+ if(c.member!=="none"){
+   im.push(["member_point","ポイントカード登録（買取ポイント登録）","既存会員・新規入会ともに必須。"]);
+ }
+ im.push(
+  ["omris_customer","OMRIS登録（顧客登録）・買取伝票のお客様名の横に☑",""],
+  ["omris_purchase","OMRIS登録（買取情報登録）・買取伝票の商品名の横に☑",omrisNote(c)],
+  ["omris_tag","OMRISタグ発行",""],
+  ["tag_storage","タグ付け・商品保管庫へ",c.guarantee?"※買取保証品は本部買上の棚に置くこと。":""],
+  ["file","買取伝票、査定見積書をファイリング",""]
+ );
+ let later=[];
+ if(c.review)later.push(["review_reply","口コミ返信","投稿いただいた場合。"]);
+ if(c.lineReg)later.push(["line_reply","LINE返信","登録いただいた場合。"]);
+ return {im,later};
+}
+function renderTask(parent,t,checked){
+ const [id,title,note]=t;
+ const l=document.createElement("label");l.className="task";
+ const cb=document.createElement("input");cb.type="checkbox";cb.dataset.id=id;cb.checked=!!checked[id];cb.addEventListener("change",save);
+ const d=document.createElement("div");d.innerHTML=`<div class="task-title">${title}</div>${note?`<div class="task-note">${note}</div>`:""}`;
+ l.append(cb,d);parent.appendChild(l);
+}
+function show(c,checked={}){
+ const t=tasks(c);$("immediate").innerHTML="";$("later").innerHTML="";
+ t.im.forEach(x=>renderTask($("immediate"),x,checked));t.later.forEach(x=>renderTask($("later"),x,checked));
+ $("laterEmpty").classList.toggle("hidden",t.later.length>0);
+ let notices=[];
+ if(c.result==="success" && c.apparel)notices.push(["ブランドアパレル買取強化 9/1～10/31",'OMRISの商品の備考欄に「アパレル買取強化」を追加。']);
+ if(c.result==="success" && c.guarantee)notices.push(["買取保証","対象："+c.gitems.map(x=>gmap[x]).join(" ／ ")]);
+ $("campaignCard").classList.toggle("hidden",notices.length===0);
+ $("campaigns").innerHTML=notices.map(n=>`<div class="notice"><strong>${n[0]}</strong><br>${n[1]}</div>`).join("");
+ progress();
+}
+function checkedMap(){let o={};document.querySelectorAll("[data-id]").forEach(x=>o[x.dataset.id]=x.checked);return o}
+function save(){localStorage.setItem(KEY,JSON.stringify({mode:"check",ctx:ctx(),checked:checkedMap()}));progress()}
+function progress(){
+ const b=[...document.querySelectorAll("[data-id]")],d=b.filter(x=>x.checked).length,t=b.length,p=t?Math.round(d/t*100):0;
+ $("bar").style.width=p+"%";$("progressText").textContent=`${d} / ${t} 完了（${p}%）`;
+ $("doneBtn").disabled=!(t&&d===t);$("doneMsg").classList.toggle("hidden",!(t&&d===t));
+}
+$("startBtn").onclick=()=>{$("startCard").classList.add("hidden");$("checkArea").classList.remove("hidden");show(ctx(),{});save()}
+$("backBtn").onclick=()=>{$("checkArea").classList.add("hidden");$("startCard").classList.remove("hidden");localStorage.setItem(KEY,JSON.stringify({mode:"edit",ctx:ctx(),checked:checkedMap()}))}
+function reset(){
+ localStorage.removeItem(KEY);
+ document.querySelectorAll("input").forEach(x=>{if(x.type==="checkbox"||x.type==="radio")x.checked=false;else x.value=""});
+ $("checkArea").classList.add("hidden");$("startCard").classList.remove("hidden");updateStart();
+}
+$("doneBtn").onclick=reset;
+let armedResetBtn=null;
+function armReset(btn,normalText){
+ if(armedResetBtn===btn){armedResetBtn=null;reset();return}
+ armedResetBtn=btn;btn.textContent="もう一度押すとリセット";
+ setTimeout(()=>{if(armedResetBtn===btn){armedResetBtn=null;btn.textContent=normalText}},3000);
+}
+$("resetBtn").onclick=()=>armReset($("resetBtn"),"最初からやり直す");
+$("resetTopBtn").onclick=()=>armReset($("resetTopBtn"),"クリア");
+
+(function restore(){
+ const raw=localStorage.getItem(KEY);if(!raw){updateStart();return}
+ try{
+  const d=JSON.parse(raw),c=d.ctx||{};
+  if(c.result)document.querySelector(`input[name=result][value="${c.result}"]`).checked=true;
+  if(c.member)document.querySelector(`input[name=member][value="${c.member}"]`).checked=true;
+  $("amount").value=c.amount||"";$("review").checked=!!c.review;$("lineReg").checked=!!c.lineReg;
+  $("apparel").checked=!!c.apparel;$("guarantee").checked=!!c.guarantee;
+  document.querySelectorAll(".gitem").forEach(x=>x.checked=(c.gitems||[]).includes(x.value));updateStart();
+  if(d.mode==="check"){$("startCard").classList.add("hidden");$("checkArea").classList.remove("hidden");show(c,d.checked||{})}
+ }catch(e){localStorage.removeItem(KEY);updateStart()}
+})();
+</script>
+</body>
+</html>
