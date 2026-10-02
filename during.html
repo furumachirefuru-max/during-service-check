@@ -68,6 +68,11 @@ button{border:0;border-radius:10px;padding:12px 16px;font-weight:700;cursor:poin
 <label for="amount">合計査定金額</label>
 <input id="amount" type="number" min="0" placeholder="例：25000">
 
+<div id="supportGoodsBox" class="result yellow hidden">
+<b>🎁 生活応援グッズプレゼント対象</b><br>
+買取金額3,000円以上でキャンペーン対象です。
+</div>
+
 <div id="cashbackBox" class="result blue hidden">
 <b>ポイントキャッシュバック</b><br>
 利用可能額：<span id="cashback" class="big">0円</span><br>
@@ -117,6 +122,8 @@ function calc(){
   $("#pointsArea").classList.toggle("hidden",card!=="yes");
   $("#taskPoints").classList.toggle("hidden",card!=="yes");
   $("#guaranteeChecks").classList.toggle("hidden",!guarantee);
+
+  $("#supportGoodsBox").classList.toggle("hidden",amount<3000);
 
   if(card==="yes" && amount>0){
     const byPoints=Math.floor(points/1000)*1000;
